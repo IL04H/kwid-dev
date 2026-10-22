@@ -17,17 +17,3 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Kwid Clock
         TARGETED_DEVICE_FAMILY: "1,2"
-    dependencies:
-      - target: ClockWidgetExtension
-  ClockWidgetExtension:
-    type: app-extension
-    platform: iOS
-    sources:
-      - path: ClockWidget
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.il04h.kwidclock.widget
-        GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: Kwid Clock Widget
-        INFOPLIST_KEY_NSExtension_NSExtensionPointIdentifier: com.apple.widgetkit-extension
-        TARGETED_DEVICE_FAMILY: "1,2"
