@@ -1,0 +1,34 @@
+name: Build Kwid Clock IPA
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['KwidClock/**', 'ClockWidget/**', 'project.yml', '.github/workflows/build-ipa.yml']
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        run: xcodegen generate
+      - name: Build unsigned iOS app
+        run: |
+          xcodebuild -project KwidClock.xcodeproj -scheme KwidClock -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath "$RUNNER_TEMP/DerivedData" CODE_SIGNING_ALLOWED=NO build
+      - name: Package unsigned IPA
+        run: |
+          APP_PATH="$RUNNER_TEMP/DerivedData/Build/Products/Release-iphoneos/KwidClock.app"
+          test -d "$APP_PATH"
+          mkdir -p "$RUNNER_TEMP/ipa/Payload"
+          cp -R "$APP_PATH" "$RUNNER_TEMP/ipa/Payload/KwidClock.app"
+          cd "$RUNNER_TEMP/ipa"
+          zip -qr "$GITHUB_WORKSPACE/KwidClock-unsigned.ipa" Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: KwidClock-unsigned-IPA
+          path: KwidClock-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 14
