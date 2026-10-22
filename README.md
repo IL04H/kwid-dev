@@ -1,10 +1,16 @@
-# Kwid Clock for iOS
+# Kwid Clock
 
-A standalone SwiftUI clock app. This version contains no Home Screen widget or widget extension.
+A standalone SwiftUI iPhone clock and countdown app. It has **no Home Screen widget or widget extension**.
+
+## Features
+- Live local clock with seconds and 12/24-hour formatting
+- Home, Countdowns, and Settings tabs
+- Create, edit, and delete countdowns with date/time, emoji, and optional notes
+- Countdown list saved locally on the iPhone between launches
+- Halloween, Christmas, Winter Snow, Spring Bloom, Deep Ocean, Galaxy, and Midnight themes
+- Black & white appearance toggle
+- Haptic feedback setting
+- Swipe countdowns to edit or delete
 
 ## Build
-1. Open the Actions tab.
-2. Select **Build Kwid Clock IPA** and tap **Run workflow**, or push a change to `main`.
-3. Download `KwidClock-unsigned-IPA` from the completed run's Artifacts section.
-
-The workflow produces an **unsigned** IPA for testing/build packaging. iOS will not install it directly until it is signed with a compatible certificate and provisioning profile, or installed through a supported development sideloading workflow. Keep signing certificates and private keys out of the repository.
+The GitHub Actions workflow builds an **unsigned** IPA for testing. It must be signed with a valid iOS signing method before installation on a physical iPhone. No widget extension is included.
