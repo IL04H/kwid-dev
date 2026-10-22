@@ -1,4 +1,6 @@
 import SwiftUI
+import UIKit
+import Combine
 
 private enum KwidTab: String, CaseIterable {
     case home = "Home"
@@ -77,10 +79,7 @@ struct ClockHomeView: View {
         }
         .foregroundStyle(.white)
         .preferredColorScheme(.dark)
-        .onAppear {
-            loadCountdowns()
-            now = Date()
-        }
+        .onAppear { loadCountdowns(); now = Date() }
         .sheet(isPresented: $showingAddCountdown) {
             CountdownEditor(theme: theme, existing: nil) { item in
                 countdowns.append(item)
@@ -97,37 +96,24 @@ struct ClockHomeView: View {
             }
             .preferredColorScheme(.dark)
         }
-        .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { date in
-            now = date
-        }
+        .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { date in now = date }
     }
 
     private var topBar: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("KWID")
-                    .font(.system(size: 13, weight: .black, design: .rounded))
-                    .tracking(4)
-                    .foregroundStyle(theme.accent)
-                Text(selectedTab.rawValue)
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                Text("KWID").font(.system(size: 13, weight: .black, design: .rounded)).tracking(4).foregroundStyle(theme.accent)
+                Text(selectedTab.rawValue).font(.system(size: 28, weight: .bold, design: .rounded))
             }
             Spacer()
-            if theme.id == "halloween" {
-                Text("🎃").font(.system(size: 31))
-            } else if theme.id == "christmas" {
-                Text("🎄").font(.system(size: 31))
-            } else {
-                Image(systemName: theme.icon)
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(theme.accent)
-                    .frame(width: 46, height: 46)
-                    .background(theme.card, in: RoundedRectangle(cornerRadius: 16))
+            if theme.id == "halloween" { Text("🎃").font(.system(size: 31)) }
+            else if theme.id == "christmas" { Text("🎄").font(.system(size: 31)) }
+            else {
+                Image(systemName: theme.icon).font(.system(size: 18, weight: .semibold)).foregroundStyle(theme.accent)
+                    .frame(width: 46, height: 46).background(theme.card, in: RoundedRectangle(cornerRadius: 16))
             }
         }
-        .padding(.horizontal, 22)
-        .padding(.top, 14)
-        .padding(.bottom, 18)
+        .padding(.horizontal, 22).padding(.top, 14).padding(.bottom, 18)
     }
 
     private var homePage: some View {
@@ -135,74 +121,56 @@ struct ClockHomeView: View {
             VStack(alignment: .leading, spacing: 20) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 30).fill(theme.card)
-                    if theme.id == "halloween" {
-                        HStack {
-                            VStack { Text("🕸️"); Spacer(); Text("🐈‍⬛") }
+                    HStack {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(theme.id == "halloween" ? "A LITTLE SPOOKY" : theme.id == "christmas" ? "HOLIDAY MAGIC" : "MAKE EVERY SECOND COUNT")
+                                .font(.system(size: 10, weight: .bold, design: .rounded)).tracking(2).foregroundStyle(theme.secondary)
                             Spacer()
-                            VStack { Spacer(); Text("🕷️"); Text("🎃") }
                         }
-                        .font(.system(size: 28))
-                        .padding(18)
+                        Spacer()
+                    }.padding(18)
+                    if theme.id == "halloween" {
+                        VStack { HStack { Text("🕸️"); Spacer(); Text("🦇") }; Spacer(); HStack { Text("🐈‍⬛"); Spacer(); Text("🕷️") } }
+                            .font(.system(size: 26)).padding(17)
                     } else if theme.id == "christmas" {
-                        HStack {
-                            Text("❄️"); Spacer(); Text("🎁")
-                        }.font(.system(size: 28)).padding(18)
+                        VStack { HStack { Text("❄️"); Spacer(); Text("🎄") }; Spacer(); HStack { Text("🎁"); Spacer(); Text("✨") } }
+                            .font(.system(size: 26)).padding(17)
                     } else if theme.id == "snow" {
-                        HStack { Text("❄️"); Spacer(); Text("☃️") }.font(.system(size: 28)).padding(18)
+                        VStack { HStack { Text("❄️"); Spacer(); Text("☃️") }; Spacer(); HStack { Text("✨"); Spacer(); Text("❄️") } }.font(.system(size: 26)).padding(17)
                     } else if theme.id == "spring" {
-                        HStack { Text("🌸"); Spacer(); Text("🌷") }.font(.system(size: 28)).padding(18)
+                        VStack { HStack { Text("🌸"); Spacer(); Text("🦋") }; Spacer(); HStack { Text("🌷"); Spacer(); Text("🌿") } }.font(.system(size: 26)).padding(17)
                     } else if theme.id == "galaxy" {
-                        HStack { Text("🌙"); Spacer(); Text("✨") }.font(.system(size: 28)).padding(18)
+                        VStack { HStack { Text("🌙"); Spacer(); Text("✨") }; Spacer(); HStack { Text("🪐"); Spacer(); Text("⭐️") } }.font(.system(size: 26)).padding(17)
                     } else if theme.id == "ocean" {
-                        HStack { Text("🌊"); Spacer(); Text("🐚") }.font(.system(size: 28)).padding(18)
+                        VStack { HStack { Text("🌊"); Spacer(); Text("🐚") }; Spacer(); HStack { Text("🪼"); Spacer(); Text("🐬") } }.font(.system(size: 26)).padding(17)
                     }
                     VStack(spacing: 14) {
-                        Text("YOUR LOCAL TIME")
-                            .font(.system(size: 11, weight: .bold, design: .rounded))
-                            .tracking(2.5)
-                            .foregroundStyle(theme.secondary)
+                        Text("YOUR LOCAL TIME").font(.system(size: 11, weight: .bold, design: .rounded)).tracking(2.5).foregroundStyle(theme.secondary)
                         TimelineView(.periodic(from: .now, by: 1)) { context in
                             Text(context.date.formatted(use24Hour
                                 ? Date.FormatStyle().hour(.twoDigits(amPM: .omitted)).minute(.twoDigits).second(.twoDigits)
                                 : Date.FormatStyle().hour(.defaultDigits(amPM: .abbreviated)).minute(.twoDigits).second(.twoDigits)))
                                 .font(.system(size: 43, weight: .light, design: .rounded).monospacedDigit())
-                                .minimumScaleFactor(0.55)
-                                .lineLimit(1)
-                                .foregroundStyle(theme.accent)
+                                .minimumScaleFactor(0.55).lineLimit(1).foregroundStyle(theme.accent)
                         }
-                        Text(Date.now.formatted(.dateTime.weekday(.wide).month(.wide).day()))
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(theme.secondary)
-                        Button {
-                            use24Hour.toggle()
-                            tap()
-                        } label: {
+                        Text(now.formatted(.dateTime.weekday(.wide).month(.wide).day())).font(.system(size: 14, weight: .medium)).foregroundStyle(theme.secondary)
+                        Button { use24Hour.toggle(); tap() } label: {
                             Text(use24Hour ? "24-HOUR FORMAT  ↗" : "12-HOUR FORMAT  ↗")
-                                .font(.system(size: 10, weight: .bold))
-                                .tracking(1)
-                                .foregroundStyle(theme.accent)
-                                .padding(.horizontal, 14).padding(.vertical, 9)
-                                .background(theme.background.opacity(0.7), in: Capsule())
+                                .font(.system(size: 10, weight: .bold)).tracking(1).foregroundStyle(theme.accent)
+                                .padding(.horizontal, 14).padding(.vertical, 9).background(theme.background.opacity(0.8), in: Capsule())
                         }
-                    }
-                    .padding(.vertical, 32)
-                }
-                .frame(minHeight: 250)
+                    }.padding(.vertical, 38)
+                }.frame(minHeight: 255)
 
                 HStack {
                     VStack(alignment: .leading, spacing: 5) {
-                        Text("COUNTING DOWN TO")
-                            .font(.system(size: 10, weight: .bold)).tracking(2).foregroundStyle(theme.secondary)
-                        Text("Your next big moment")
-                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                        Text("COUNTING DOWN TO").font(.system(size: 10, weight: .bold)).tracking(2).foregroundStyle(theme.secondary)
+                        Text("Your next big moment").font(.system(size: 20, weight: .bold, design: .rounded))
                     }
                     Spacer()
                     Button { selectedTab = .countdowns; tap() } label: {
-                        Image(systemName: "arrow.up.right")
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundStyle(theme.background)
-                            .frame(width: 42, height: 42)
-                            .background(theme.accent, in: Circle())
+                        Image(systemName: "arrow.up.right").font(.system(size: 15, weight: .bold)).foregroundStyle(theme.background)
+                            .frame(width: 42, height: 42).background(theme.accent, in: Circle())
                     }
                 }
                 if let next = countdowns.filter({ $0.date > now }).sorted(by: { $0.date < $1.date }).first {
@@ -210,88 +178,58 @@ struct ClockHomeView: View {
                 } else {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("✨").font(.system(size: 29))
-                        Text("Something to look forward to")
-                            .font(.system(size: 17, weight: .bold))
-                        Text("Add a birthday, holiday, trip or any date that matters to you.")
-                            .font(.system(size: 13)).foregroundStyle(theme.secondary)
+                        Text("Something to look forward to").font(.system(size: 17, weight: .bold))
+                        Text("Add a birthday, holiday, trip or any date that matters to you.").font(.system(size: 13)).foregroundStyle(theme.secondary)
                         Button { showingAddCountdown = true; tap() } label: {
-                            Label("Create countdown", systemImage: "plus")
-                                .font(.system(size: 13, weight: .bold))
-                                .foregroundStyle(theme.background)
-                                .padding(.horizontal, 16).padding(.vertical, 12)
-                                .background(theme.accent, in: Capsule())
+                            Label("Create countdown", systemImage: "plus").font(.system(size: 13, weight: .bold))
+                                .foregroundStyle(theme.background).padding(.horizontal, 16).padding(.vertical, 12).background(theme.accent, in: Capsule())
                         }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(20)
-                    .background(theme.card, in: RoundedRectangle(cornerRadius: 24))
+                    }.frame(maxWidth: .infinity, alignment: .leading).padding(20).background(theme.card, in: RoundedRectangle(cornerRadius: 24))
                 }
 
-                Text("YOUR VIBE")
-                    .font(.system(size: 10, weight: .bold)).tracking(2).foregroundStyle(theme.secondary)
+                Text("YOUR VIBE").font(.system(size: 10, weight: .bold)).tracking(2).foregroundStyle(theme.secondary)
                 HStack(spacing: 10) {
                     themeShortcut("Halloween", emoji: "🎃", id: "halloween")
                     themeShortcut("Christmas", emoji: "🎄", id: "christmas")
                     themeShortcut("Galaxy", emoji: "🌌", id: "galaxy")
                 }
-            }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 24)
+            }.padding(.horizontal, 20).padding(.bottom, 24)
         }
     }
 
     private func themeShortcut(_ title: String, emoji: String, id: String) -> some View {
-        Button {
-            savedTheme = id
-            monochrome = false
-            tap()
-        } label: {
+        Button { savedTheme = id; monochrome = false; tap() } label: {
             VStack(spacing: 9) {
                 Text(emoji).font(.system(size: 26))
                 Text(title).font(.system(size: 11, weight: .semibold)).lineLimit(1)
             }
-            .frame(maxWidth: .infinity).padding(.vertical, 15)
-            .background(theme.card, in: RoundedRectangle(cornerRadius: 19))
+            .frame(maxWidth: .infinity).padding(.vertical, 15).background(theme.card, in: RoundedRectangle(cornerRadius: 19))
             .overlay(RoundedRectangle(cornerRadius: 19).stroke(savedTheme == id && !monochrome ? theme.accent.opacity(0.7) : .clear, lineWidth: 1))
-        }
-        .buttonStyle(.plain)
+        }.buttonStyle(.plain)
     }
 
     private var countdownPage: some View {
         VStack(spacing: 0) {
             HStack {
                 VStack(alignment: .leading, spacing: 5) {
-                    Text("\(countdowns.count) MOMENTS SAVED")
-                        .font(.system(size: 10, weight: .bold)).tracking(2).foregroundStyle(theme.secondary)
-                    Text("Make time exciting.")
-                        .font(.system(size: 16, weight: .medium)).foregroundStyle(theme.secondary)
+                    Text("\(countdowns.count) MOMENTS SAVED").font(.system(size: 10, weight: .bold)).tracking(2).foregroundStyle(theme.secondary)
+                    Text("Make time exciting.").font(.system(size: 16, weight: .medium)).foregroundStyle(theme.secondary)
                 }
                 Spacer()
                 Button { showingAddCountdown = true; tap() } label: {
-                    Image(systemName: "plus")
-                        .font(.system(size: 17, weight: .bold))
-                        .foregroundStyle(theme.background)
-                        .frame(width: 48, height: 48)
-                        .background(theme.accent, in: Circle())
+                    Image(systemName: "plus").font(.system(size: 17, weight: .bold)).foregroundStyle(theme.background)
+                        .frame(width: 48, height: 48).background(theme.accent, in: Circle())
                 }
-            }
-            .padding(.horizontal, 20).padding(.bottom, 16)
+            }.padding(.horizontal, 20).padding(.bottom, 16)
 
             if countdowns.isEmpty {
                 Spacer()
                 Text("📅").font(.system(size: 52))
-                Text("Nothing on the horizon")
-                    .font(.system(size: 19, weight: .bold))
-                    .padding(.top, 12)
-                Text("Create a countdown to your next big day.")
-                    .font(.system(size: 13)).foregroundStyle(theme.secondary)
-                    .padding(.top, 4)
+                Text("Nothing on the horizon").font(.system(size: 19, weight: .bold)).padding(.top, 12)
+                Text("Create a countdown to your next big day.").font(.system(size: 13)).foregroundStyle(theme.secondary).padding(.top, 4)
                 Button { showingAddCountdown = true } label: {
-                    Label("Add countdown", systemImage: "plus")
-                        .font(.system(size: 14, weight: .bold))
-                        .padding(.horizontal, 20).padding(.vertical, 13)
-                        .background(theme.accent, in: Capsule())
-                        .foregroundStyle(theme.background)
+                    Label("Add countdown", systemImage: "plus").font(.system(size: 14, weight: .bold))
+                        .padding(.horizontal, 20).padding(.vertical, 13).background(theme.accent, in: Capsule()).foregroundStyle(theme.background)
                 }.padding(.top, 18)
                 Spacer()
             } else {
@@ -299,20 +237,15 @@ struct ClockHomeView: View {
                     ForEach(countdowns.sorted(by: { $0.date < $1.date })) { item in
                         countdownCard(item)
                             .listRowInsets(EdgeInsets(top: 5, leading: 20, bottom: 5, trailing: 20))
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear).listRowSeparator(.hidden)
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 Button(role: .destructive) {
-                                    countdowns.removeAll { $0.id == item.id }
-                                    saveCountdowns()
+                                    countdowns.removeAll { $0.id == item.id }; saveCountdowns()
                                 } label: { Label("Delete", systemImage: "trash") }
-                                Button { editingCountdown = item } label: { Label("Edit", systemImage: "pencil") }
-                                    .tint(theme.accent)
+                                Button { editingCountdown = item } label: { Label("Edit", systemImage: "pencil") }.tint(theme.accent)
                             }
                     }
-                }
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
+                }.listStyle(.plain).scrollContentBackground(.hidden)
             }
         }
     }
@@ -324,41 +257,28 @@ struct ClockHomeView: View {
         let minutes = (remaining % 3600) / 60
         let seconds = remaining % 60
         return HStack(spacing: 14) {
-            Text(item.emoji).font(.system(size: 29))
-                .frame(width: 58, height: 62)
-                .background(theme.background.opacity(0.7), in: RoundedRectangle(cornerRadius: 18))
+            Text(item.emoji).font(.system(size: 29)).frame(width: 58, height: 62).background(theme.background.opacity(0.7), in: RoundedRectangle(cornerRadius: 18))
             VStack(alignment: .leading, spacing: 5) {
                 Text(item.title).font(.system(size: 16, weight: .bold)).lineLimit(1)
-                Text(item.date.formatted(.dateTime.month(.abbreviated).day().year()))
-                    .font(.system(size: 11, weight: .medium)).foregroundStyle(theme.secondary)
-                if !item.note.isEmpty {
-                    Text(item.note).font(.system(size: 11)).foregroundStyle(theme.secondary).lineLimit(1)
-                }
+                Text(item.date.formatted(.dateTime.month(.abbreviated).day().year())).font(.system(size: 11, weight: .medium)).foregroundStyle(theme.secondary)
+                if !item.note.isEmpty { Text(item.note).font(.system(size: 11)).foregroundStyle(theme.secondary).lineLimit(1) }
             }
             Spacer(minLength: 4)
             VStack(alignment: .trailing, spacing: 4) {
                 Text(item.date <= now ? "TODAY" : "\(days)d \(hours)h")
-                    .font(.system(size: 17, weight: .bold, design: .rounded).monospacedDigit())
-                    .foregroundStyle(theme.accent)
+                    .font(.system(size: 17, weight: .bold, design: .rounded).monospacedDigit()).foregroundStyle(theme.accent)
                 Text(item.date <= now ? "It's here!" : String(format: "%02dm %02ds", minutes, seconds))
-                    .font(.system(size: 10, weight: .medium, design: .monospaced))
-                    .foregroundStyle(theme.secondary)
+                    .font(.system(size: 10, weight: .medium, design: .monospaced)).foregroundStyle(theme.secondary)
             }
-        }
-        .padding(14)
-        .background(theme.card, in: RoundedRectangle(cornerRadius: 22))
-        .contentShape(Rectangle())
-        .onTapGesture { editingCountdown = item }
+        }.padding(14).background(theme.card, in: RoundedRectangle(cornerRadius: 22)).contentShape(Rectangle()).onTapGesture { editingCountdown = item }
     }
 
     private var settingsPage: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 22) {
                 VStack(alignment: .leading, spacing: 7) {
-                    Text("MAKE IT YOURS")
-                        .font(.system(size: 10, weight: .bold)).tracking(2).foregroundStyle(theme.secondary)
-                    Text("Your clock, your rules.")
-                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                    Text("MAKE IT YOURS").font(.system(size: 10, weight: .bold)).tracking(2).foregroundStyle(theme.secondary)
+                    Text("Your clock, your rules.").font(.system(size: 20, weight: .bold, design: .rounded))
                 }
                 VStack(alignment: .leading, spacing: 14) {
                     Text("APPEARANCE").font(.system(size: 10, weight: .bold)).tracking(2).foregroundStyle(theme.secondary)
@@ -370,32 +290,23 @@ struct ClockHomeView: View {
                             }
                         } icon: { Image(systemName: "circle.lefthalf.filled").foregroundStyle(theme.accent) }
                     }.tint(theme.accent).onChange(of: monochrome) { _, _ in tap() }
-                }
-                .padding(18).background(theme.card, in: RoundedRectangle(cornerRadius: 22))
+                }.padding(18).background(theme.card, in: RoundedRectangle(cornerRadius: 22))
 
                 VStack(alignment: .leading, spacing: 14) {
                     Text("THEME GALLERY").font(.system(size: 10, weight: .bold)).tracking(2).foregroundStyle(theme.secondary)
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 11) {
                         ForEach(KwidTheme.all.filter { $0.id != "mono" }) { option in
-                            Button {
-                                savedTheme = option.id
-                                monochrome = false
-                                tap()
-                            } label: {
+                            Button { savedTheme = option.id; monochrome = false; tap() } label: {
                                 VStack(alignment: .leading, spacing: 13) {
                                     HStack {
                                         Image(systemName: option.icon).font(.system(size: 18, weight: .semibold))
                                         Spacer()
-                                        if savedTheme == option.id && !monochrome {
-                                            Image(systemName: "checkmark.circle.fill")
-                                        }
+                                        if savedTheme == option.id && !monochrome { Image(systemName: "checkmark.circle.fill") }
                                     }.foregroundStyle(option.accent)
                                     Text(option.name).font(.system(size: 14, weight: .bold))
                                     RoundedRectangle(cornerRadius: 3).fill(option.accent).frame(height: 4)
-                                }
-                                .padding(15).frame(maxWidth: .infinity, alignment: .leading)
-                                .background(option.card, in: RoundedRectangle(cornerRadius: 19))
-                                .overlay(RoundedRectangle(cornerRadius: 19).stroke(savedTheme == option.id && !monochrome ? option.accent : .clear, lineWidth: 1.5))
+                                }.padding(15).frame(maxWidth: .infinity, alignment: .leading).background(option.card, in: RoundedRectangle(cornerRadius: 19))
+                                    .overlay(RoundedRectangle(cornerRadius: 19).stroke(savedTheme == option.id && !monochrome ? option.accent : .clear, lineWidth: 1.5))
                             }.buttonStyle(.plain)
                         }
                     }
@@ -409,18 +320,14 @@ struct ClockHomeView: View {
                     settingRow(icon: "hand.tap", title: "Haptic feedback", subtitle: "Vibration on app controls") {
                         Toggle("", isOn: $haptics).labelsHidden().tint(theme.accent)
                     }
-                }
-                .padding(18).background(theme.card, in: RoundedRectangle(cornerRadius: 22))
+                }.padding(18).background(theme.card, in: RoundedRectangle(cornerRadius: 22))
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("KWID CLOCK").font(.system(size: 11, weight: .black)).tracking(3).foregroundStyle(theme.accent)
-                    Text("A little more magic in every moment.")
-                        .font(.system(size: 12)).foregroundStyle(theme.secondary)
-                    Text("Your countdowns stay saved on this iPhone.")
-                        .font(.system(size: 11)).foregroundStyle(theme.secondary)
+                    Text("A little more magic in every moment.").font(.system(size: 12)).foregroundStyle(theme.secondary)
+                    Text("Your countdowns stay saved on this iPhone.").font(.system(size: 11)).foregroundStyle(theme.secondary)
                 }.padding(.horizontal, 3).padding(.bottom, 18)
-            }
-            .padding(.horizontal, 20)
+            }.padding(.horizontal, 20)
         }
     }
 
@@ -446,23 +353,17 @@ struct ClockHomeView: View {
                     VStack(spacing: 6) {
                         Image(systemName: tab.symbol).font(.system(size: 19, weight: selectedTab == tab ? .semibold : .regular))
                         Text(tab.rawValue).font(.system(size: 10, weight: selectedTab == tab ? .bold : .medium))
-                    }
-                    .foregroundStyle(selectedTab == tab ? theme.accent : theme.secondary)
-                    .frame(maxWidth: .infinity).padding(.top, 13).padding(.bottom, 8)
-                    .contentShape(Rectangle())
+                    }.foregroundStyle(selectedTab == tab ? theme.accent : theme.secondary)
+                        .frame(maxWidth: .infinity).padding(.top, 13).padding(.bottom, 8).contentShape(Rectangle())
                 }.buttonStyle(.plain)
             }
-        }
-        .padding(.horizontal, 10)
-        .background(theme.card.opacity(0.95))
-        .overlay(alignment: .top) { Rectangle().fill(theme.secondary.opacity(0.15)).frame(height: 1) }
+        }.padding(.horizontal, 10).background(theme.card.opacity(0.95))
+            .overlay(alignment: .top) { Rectangle().fill(theme.secondary.opacity(0.15)).frame(height: 1) }
     }
 
     private func tap() {
         guard haptics else { return }
-        #if os(iOS)
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
-        #endif
     }
 
     private func loadCountdowns() {
@@ -486,7 +387,6 @@ private struct CountdownEditor: View {
     @State private var date = Calendar.current.date(byAdding: .day, value: 7, to: .now) ?? .now
     @State private var emoji = "🎃"
     @State private var note = ""
-
     private let emojis = ["🎃", "👻", "🐈‍⬛", "🕷️", "🦇", "🎄", "🎁", "❄️", "🎂", "🎉", "❤️", "✈️", "🎓", "🌙", "✨", "🌸", "🏖️", "🎮"]
 
     var body: some View {
@@ -503,36 +403,26 @@ private struct CountdownEditor: View {
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 6), spacing: 12) {
                             ForEach(emojis, id: \.self) { symbol in
                                 Button { emoji = symbol } label: {
-                                    Text(symbol).font(.system(size: 27))
-                                        .frame(maxWidth: .infinity).padding(.vertical, 8)
+                                    Text(symbol).font(.system(size: 27)).frame(maxWidth: .infinity).padding(.vertical, 8)
                                         .background(emoji == symbol ? theme.accent.opacity(0.25) : theme.card, in: RoundedRectangle(cornerRadius: 12))
                                         .overlay(RoundedRectangle(cornerRadius: 12).stroke(emoji == symbol ? theme.accent : .clear, lineWidth: 1.5))
                                 }.buttonStyle(.plain)
                             }
                         }.listRowBackground(theme.card)
                     }
-                    Section {
-                        Text("Your countdown is saved locally on this iPhone.")
-                            .font(.system(size: 12)).foregroundStyle(theme.secondary)
-                    }
-                }
-                .scrollContentBackground(.hidden)
-                .tint(theme.accent)
+                    Section { Text("Your countdown is saved locally on this iPhone.").font(.system(size: 12)).foregroundStyle(theme.secondary) }
+                }.scrollContentBackground(.hidden).tint(theme.accent)
             }
             .navigationTitle(existing == nil ? "New countdown" : "Edit countdown")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }.foregroundStyle(theme.accent)
-                }
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() }.foregroundStyle(theme.accent) }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         let item = KwidCountdown(id: existing?.id ?? UUID(), title: title.trimmingCharacters(in: .whitespacesAndNewlines), date: date, emoji: emoji, note: note.trimmingCharacters(in: .whitespacesAndNewlines))
                         onSave(item)
                         dismiss()
-                    }
-                    .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                    .foregroundStyle(theme.accent)
+                    }.disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty).foregroundStyle(theme.accent)
                 }
             }
             .onAppear {
